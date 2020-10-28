@@ -1,0 +1,314 @@
+---
+title: "359HW2"
+author: "Mikayla Mulgrew V00923052"
+date: "15/10/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+##Q1
+
+(a)
+```{r Q1}
+
+#a function to demonstrate the CLT wrt the uniform distribution
+unifclt<-function(ns,size){
+  
+  #initialize a vector to hold mean values
+  means<-rep(1,size)
+  
+  #for the given number and size of samples
+  for (i in 1:ns){
+    
+    for (j in 1:size){
+      #use runif to generate random data from a uniform distribution
+      unDist<-runif(size, min=0, max=1)
+      mu<-mean(unDist)
+      means[i]<-mu
+    }
+  }
+  #plot means of each generated sample 
+  hist(means,breaks=seq(0,1,by=0.05), main=paste('Uniform Distn:',ns,'Samples of Size',size, sep=" "), xlab='Mean', ylab='Frequency')
+}
+
+par(mfrow=c(2,2))
+unifclt(10,10)
+unifclt(10,20)
+unifclt(10,50)
+unifclt(10,100)
+unifclt(100,10)
+unifclt(100,20)
+unifclt(100,50)
+unifclt(100,100)
+unifclt(1000,10)
+unifclt(1000,20)
+unifclt(1000,50)
+unifclt(1000,100)
+
+
+#a function to demonstrate the CLT wrt the poisson distribution
+poissonclt<-function(ns, size){
+  
+  #initialize a vector to hold mean values
+  means<-rep(1,size)
+  
+  for (i in 1:ns){
+    
+    #use rpois to generate random data from a poisson distribution
+    for (j in 1:size){
+      pDist<-rpois(size,lambda=5)
+      mp<-mean(pDist)
+      means[i]<-mp
+    }
+  }
+  #plot means of each generated sample 
+  hist(means,breaks=seq(0,10,by=0.5), main=paste('Poisson Distn:',ns,'Samples of Size',size, sep=" "), xlab='Mean', ylab='Frequency')
+}
+
+par(mfrow=c(2,2))
+poissonclt(10,10)
+poissonclt(10,20)
+poissonclt(10,50)
+poissonclt(10,100)
+poissonclt(100,10)
+poissonclt(100,20)
+poissonclt(100,50)
+poissonclt(100,100)
+poissonclt(1000,10)
+poissonclt(1000,20)
+poissonclt(1000,50)
+poissonclt(1000,100)
+
+
+
+#a function to demonstrate the CLT wrt the binomial distribution
+bclt<-function(ns,size){
+  
+  #initialize a vector to hold mean values
+  means<-rep(1,size)
+  
+  for (i in 1:ns){
+    
+    for (j in 1:size){
+      #use rbinom to generate random data from a binomial distribution
+      bDist<-rbinom(size, n=1, p=0.20)
+      mb<-mean(bDist)
+      means[i]<-mb
+    }
+  }
+  #plot means of each generated sample 
+  hist(means, main=paste('Binomial Distn:',ns,'Samples of Size',size, sep=''), xlab='Mean', ylab='Frequency')
+}
+
+par(mfrow=c(2,2))
+bclt(10,10)
+bclt(10,20)
+bclt(10,50)
+bclt(10,100)
+bclt(100,10)
+bclt(100,20)
+bclt(100,50)
+bclt(100,100)
+bclt(1000,10)
+bclt(1000,20)
+bclt(1000,50)
+bclt(1000,100)
+
+```
+(b)
+As sample sizes increase, there is a greater spread of the means across the x-axis. 
+
+(c)
+As the number of samples increases, the distributions increasingly resemble a normal distribution. 
+
+(d)
+The distribution that the samples are generated from has an effect on how approximately normal the distribution of the sample means will ultimately be. If the samples are pulled from a distribution that is quite different from the normal distribution, then the sample sizes will need to be quite large in order to better approximate the normal distribution. 
+
+
+##Q2
+
+(a)
+```{r Q2}
+
+#read salt.txt
+old_salt<-read.table(file="C:/Users/Mik/Documents/STAT359/data/salt.txt", sep="", header=TRUE)
+
+#fix data
+salt<-rep(1:length(old_salt$X13.53)+1)
+
+for (i in 1:length(old_salt$X13.53)){
+  num=old_salt$X13.53[i]
+  salt[i]<-num
+}
+salt[9]<-13.53
+
+##graphical representations of data
+par(mfrow=c(1,2))
+hist(salt, main='Histogram of Saltiness',xlab='Measure of Saltiness')
+qqnorm(salt)
+qqline(salt)
+boxplot(salt, main='Measure of Saltiness', col='palevioletred')
+
+```
+(b)
+```{r Q2(b)}
+
+##calculate skew
+skew<- function(s){
+  
+  sumsCubed<-rep(1:length(s))
+  
+  for (i in 1:length(s)){
+    ms<-mean(s)
+    sumsCubed[i]<-(s[i]-ms)^3
+  }
+  
+  sk<-sum(sumsCubed)/(length(sumsCubed)*sqrt(var(salt))^3)
+}
+
+print(skew(salt))
+
+
+##calculate kurtosis
+kurtosis<- function(s){
+  
+  sumsQuad<-rep(1:length(s))
+  
+  for (i in 1:length(s)){
+    ms<-mean(s)
+    sumsQuad[i]<-(s[i]-ms)^4
+  }
+  
+  kurt<-((sum(sumsQuad)/length(sumsQuad))/var(salt)^2)-3
+}
+
+print(kurtosis(salt))
+
+```
+(c)
+```{r Q2(c)}
+
+##bootstrapping the salt data
+skewBoot<- function(s, r){
+  
+  #number of bootstrap replicates
+  reps<-r
+  
+  #populate a matrix with the replicates
+  saltyboot<-matrix(data=sample(x=s,size=reps*length(s),replace=TRUE),nrow=length(s),ncol=reps)
+  
+  #apply the skew function saltyboot matrix
+  skewsb<-apply(saltyboot,2,skew)
+  
+  #obtain the 95% C.I.
+  sbint<-quantile(skewsb, probs=c(0.025,0.975))
+  print(sbint)
+}
+
+skewBoot(salt, 15000)
+
+```
+It seems that the population generating the data may have a slightly skewed distribution from the graphical observations but since the confidence interval contains 0, it is possible for the data to resemble a normal distribution. With a skewness=0.1723753, the data seems fairly symmetrical. 
+
+(d)
+```{r Q2(d)}
+
+kurtBoot<- function(s,r){
+  
+  #number of bootstrap replicates
+  reps<-r
+  
+  #populate a matrix with the replicates
+  saltyboot<-matrix(data=sample(x=s,size=reps*length(s),replace=TRUE),nrow=length(s),ncol=reps)
+  
+  #apply the skew function saltyboot matrix
+  kurtsb<-apply(saltyboot,2,kurtosis)
+  
+  #obtain the 95% C.I.
+  sbint<-quantile(kurtsb, probs=c(0.025,0.975))
+  print(sbint)
+  
+}
+
+kurtBoot(salt, 15000)
+
+```
+Since the bootstrap confidence interval for the kurtosis contains 0, it does not seem that the population distribution generating the data would have a non-zero kurtosis. 
+
+(e)
+Based on all of the above observations, the distribution of the original sample seems very similar to a normal distribution but slightly positive skewed with heavier tails than normal and a flatter peak. 
+
+The qqplot doesn't indicate linearity but rather a distribution that has heavier tails. The boxplot shows this as well with extreme values on either end. 
+
+The histogram indicates a slightly right skewed distribution. 
+
+The values for skewness and kurtosis, 0.1723753 and -0.9342198, respectively, reflect a a slightly right-skewed distribution with a flatter peak. 
+
+The bootstrap confidence intervals indicate that the distribution may not be drastically different than a normal distribution. 
+
+
+##Q3
+
+```{r Q3}
+
+eggs<-read.table(file='C:/Users/Mik/Documents/STAT359/data/fecundity.txt', sep="", header=TRUE)
+
+par(mfrow=c(1,2))
+qqnorm(eggs$RS, main='RS')
+qqline(eggs$RS)
+qqnorm(eggs$NS, main='NS')
+qqline(eggs$NS)
+
+boxplot(eggs$RS, eggs$NS, col='darkorange', names=c('RS', 'NS'))
+title('Per Diem Fecundity')
+
+summary(eggs)
+
+var.test(eggs$RS, eggs$NS)
+
+t.test(eggs$RS, eggs$NS, alternative='two.sided',mu=0, var.equal=TRUE)
+
+t.test(eggs$RS, eggs$NS, alternative='less',mu=0, var.equal=TRUE)
+
+```
+Using var.test to test the difference in variances between NS and RS gives a p-value of 0.4974. This p-value isn't significant enough to claim that the variances differ. 
+
+Assuming that the variances are equal, a two sided t.test and a lower one sided t.test offer up significant p-values. In conclusion, the null hypothesis is rejected in favor of either alternative hypothesis which suggests a difference in population mean fecundity. 
+
+##Q4
+
+(a)
+```{r Q4(a)}
+
+fabrics<-read.csv('C:/Users/Mik/Documents/STAT359/data/fabric2.csv',stringsAsFactors=FALSE, fileEncoding="UTF-8-BOM", header=TRUE)
+
+hqf<-fabrics$H[!is.na(fabrics$H)]
+pqf<-fabrics$P[!is.na(fabrics$P)]
+
+par(mfrow=c(1,2))
+qqnorm(hqf)
+qqline(hqf)
+qqnorm(pqf)
+qqline(pqf)
+
+```
+(b)
+```{r Q4(b)}
+
+boxplot(hqf, pqf,col='cadetblue3', names=c('High Quality Fabric', 'Poor Quality Fabric'),main='High-Quality and Poor-Quality Fabrics')
+
+```
+The boxplots for High-Quality Fabric and Poor-Quality Fabric overlap significantly but the High-Quality Fabric has a longer tail in the lower values and the Poor-Quality Fabric has a longer tail in the higher values. The averages for each seem quite close to each other so this suggests that there is not a large difference between true average extensibility for the two fabrics. 
+
+(c)
+```{r Q4(c)}
+
+var.test(hqf, pqf)
+
+t.test(hqf, pqf, alternative='two.sided', mu=0, var.equal=TRUE)
+
+```
+There wasn't sufficient evidence suggesting that the population variances were unequal so a t-test assuming their equality was performed. Given a p-value of 0.6801, we do not reject the null hypothesis and assume that it is likely there is no difference in the average extensibility of the fabrics. 

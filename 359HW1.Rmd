@@ -1,0 +1,131 @@
+---
+title: "359HW1"
+author: "Mikayla Mulgrew V00923052"
+date: "29/09/2020"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+##Q1
+
+Indeed, I read Chapter 1-4.
+
+##Q2
+
+(a)
+```{r part(a)}
+#read table created in excel
+data<-read.csv("C:/Users/Mik/Documents/STAT359/PlantData.csv", fileEncoding="UTF-8-BOM")
+plants<-data.frame(data)
+print(plants)
+```
+(b)
+```{r part(b)}
+attach(plants)
+
+#order plants according to growth
+plants[order(Growth),]
+```
+(c)
+```{r part(c)}
+#calculate mean of plant growth
+plantMean<-sum(Growth)/length(Growth)
+plantMean
+
+#create a vector
+x_x<-rep(1,length(Growth))
+
+#save squared sums to vector
+for (i in 1:length(Growth)){
+  x_x[i]<-(Growth[i]-plantMean)^2
+}
+
+#calculate standard deviation of plant growth
+plantSD<-sqrt((1/length(Growth))*sum(x_x))
+plantSD
+```
+(d)
+```{r part(d)}
+#histogram of plant growth with 2mm bins
+hist(plants$Growth, breaks=seq(6,26,by=2), main='Plant Growth with Treatment', xlab='Growth (mm)', ylab='# of Plants in Range')
+```
+##Q3
+
+```{r questionTHREE}
+
+sample.variance<-function(x){
+  
+  #create a vector to hold values
+  x_x<-rep(1,length(x))
+  
+  #for loop to iterate through each value in y
+  #add each sum squared to vector
+  for (i in 1:length(x)){
+    x_x[i]<-(y[i]-mean(x))^2
+  }
+  
+  #calculate and return the standard deviation
+  sv<-sum(x_x)/(length(x)-1)
+  sv
+}
+
+#send vector y to sample.variance function
+y<-c(11,11,10,8,11,3,15,11,7,6)
+sample.variance(y)
+```
+##Q4
+
+(a)
+```{r part a}
+
+tv<-read.table(file='C:/Users/Mik/Documents/STAT359/data/tv.txt', sep="", header=TRUE, na.strings="NA")
+
+canada<-tv$Canada
+us<-tv$US
+
+canada<-canada[!is.na(canada)]
+us<-us[!is.na(us)]
+
+boxplot(canada, us, col='purple', names=c("Canada", "US"))
+title("TV Watching")
+
+mean(canada)
+mean(us)
+
+median(canada)
+median(us)
+```
+(b)
+```{r part b}
+z.test<-function(y1,y2,H1){
+  
+  #calculate observed test statistic
+  t.s.obs<-(mean(y1)-mean(y2))/sqrt((var(y1)/length(y1))+(var(y2)/length(y2)))
+  
+  #calculate p-value according to given H1
+  if (H1=="two.sided"){
+    p.value<-2*(pnorm(abs(t.s.obs)))
+    
+    } else if (H1=="greater"){
+    p.value<-1-pnorm(t.s.obs)
+    
+    } else if (H1=="less"){
+    p.value<-pnorm(t.s.obs)
+    
+    } else{
+    print("H1 Not Recognized")
+
+    }
+    
+    #print p-value 
+    p.value
+}
+
+z.test(canada,us,"greater")
+z.test(canada,us,"less")
+z.test(canada,us,"two.sided")
+```
+(c)
+To determine if Canadian students watch less TV than their American counterparts, the most relevant hypothesis test would be the lower one-sided alternative hypothesis. With a p-value of `0.02208637` it is unlikely that the null hypothesis is true and is rejected in favour of the alternative hypothesis. 
